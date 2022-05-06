@@ -37,10 +37,10 @@ def parameter_camp_test(parameter_list):
 
     action_size = 7
     state_size = 5
-    tf.reset_default_graph()
+    tf.compat.v1.reset_default_graph()
     np.random.seed(seed)
-    tf.set_random_seed(seed)
-    sess = tf.Session()
+    tf.compat.v1.set_random_seed(seed)
+    sess = tf.compat.v1.Session()
     rtb_agent = agent(epsilon_max, epsilon_min, epsilon_decay_rate,
                   discount_factor, batch_size, memory_cap,
                   state_size, action_size, learning_rate, sess)

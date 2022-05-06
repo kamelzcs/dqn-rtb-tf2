@@ -83,10 +83,10 @@ class agent:
         to target network.
         :return: updated target network with weights from local network
         """
-        estimator_params = [t for t in tf.trainable_variables() if \
+        estimator_params = [t for t in tf.compat.v1.trainable_variables() if \
                             t.name.startswith(self.q_estimator.scope)]
         estimator_params = sorted(estimator_params, key=lambda v: v.name)
-        target_params = [t for t in tf.trainable_variables() if \
+        target_params = [t for t in tf.compat.v1.trainable_variables() if \
                          t.name.startswith(self.q_target.scope)]
         target_params = sorted(target_params, key=lambda v: v.name)
 

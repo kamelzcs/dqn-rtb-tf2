@@ -19,26 +19,26 @@ class q_estimator:
         self.scope = variable_scope
         self.state_size = state_size
         self.action_size = action_size
-        self.input_pl = tf.placeholder(dtype=np.float32, shape=(None, self.state_size),\
+        self.input_pl = tf.compat.v1.placeholder(dtype=np.float32, shape=(None, self.state_size),\
                                        name=self.scope+'input_pl')
-        self.target_pl = tf.placeholder(dtype=np.float32, shape=(None, self.action_size),\
+        self.target_pl = tf.compat.v1.placeholder(dtype=np.float32, shape=(None, self.action_size),\
                                         name=self.scope+'output_pl')
-        self.input_layer = tf.layers.dense(self.input_pl, 128, activation=tf.nn.relu,\
+        self.input_layer = tf.compat.v1.layers.dense(self.input_pl, 128, activation=tf.nn.relu,\
                                            kernel_initializer=tf.initializers.random_normal,
                                            bias_initializer=tf.initializers.random_normal,
                                            name=self.scope+'.input_layer')
-        self.hidden_layer = tf.layers.dense(self.input_layer, 64, activation=tf.nn.relu,\
+        self.hidden_layer = tf.compat.v1.layers.dense(self.input_layer, 64, activation=tf.nn.relu,\
                                            kernel_initializer=tf.initializers.random_normal,
                                            bias_initializer=tf.initializers.random_normal,
                                            name=self.scope+'.hidden_layer')
-        self.output_layer = tf.layers.dense(self.hidden_layer, self.action_size,\
+        self.output_layer = tf.compat.v1.layers.dense(self.hidden_layer, self.action_size,\
                                             activation=None,\
                                            kernel_initializer=tf.initializers.random_normal,
                                            bias_initializer=tf.initializers.random_normal,
                                            name=self.scope+'.output_layer')
         self.loss = tf.losses.mean_squared_error(self.target_pl, self.output_layer)
-        self.optimizer = tf.train.AdamOptimizer().minimize(self.loss)
-        self.var_init = tf.global_variables_initializer()
+        self.optimizer = tf.compat.v1.train.AdamOptimizer().minimize(self.loss)
+        self.var_init = tf.compat.v1.global_variables_initializer()
         
     def predict_single(self, sess, state):
         return sess.run(self.output_layer,

@@ -210,14 +210,14 @@ def get_data(camp_n):
     if type(camp_n) != str:
         train_file_dict = {}
         test_file_dict = {}
-        data_path = os.path.join(os.getcwd(), 'data/ipinyou-data')
+        data_path = os.path.join(os.getcwd(), 'iPinYou_data')
 
         for camp in camp_n:
-            test_data = pd.read_csv(data_path + '/' + camp + '/' + 'test.theta.txt',
+            test_data = pd.read_csv(f"{data_path}/test.theta_{camp}.txt",
                                      header=None, index_col=False, sep=' ',names=['click', 'winprice', 'pctr'])
-            train_data = pd.read_csv(data_path + '/' + camp + '/' + 'train.theta.txt',
+            train_data = pd.read_csv(f"{data_path}/train.theta_{camp}.txt",
                                      header=None, index_col=False, sep=' ', names=['click', 'winprice', 'pctr'])
-            camp_info = pickle.load(open(data_path + '/' + camp + '/' + 'info.txt', "rb"))
+            camp_info = pickle.load(open(f"{data_path}/info_{camp}.txt", 'rb'))
             test_budget = camp_info['cost_test']
             train_budget = camp_info['cost_train']
             test_imp = camp_info['imp_test']
@@ -229,12 +229,12 @@ def get_data(camp_n):
             train_file_dict[camp] = train
             test_file_dict[camp] = test
     else:
-        data_path = os.path.join(os.getcwd(), 'data/ipinyou-data')
-        test_data = pd.read_csv(data_path + '/' + camp_n + '/' + 'test.theta.txt',
+        data_path = os.path.join(os.getcwd(), 'iPinYou_data')
+        test_data = pd.read_csv(f"{data_path}/test.theta_{camp_n}.txt",
                                 header=None, index_col=False, sep=' ', names=['click', 'winprice', 'pctr'])
-        train_data = pd.read_csv(data_path + '/' + camp_n + '/' + 'train.theta.txt',
+        train_data = pd.read_csv(f"{data_path}/train.theta_{camp_n}.txt",
                                  header=None, index_col=False, sep=' ', names=['click', 'winprice', 'pctr'])
-        camp_info = pickle.load(open(data_path + '/' + camp_n + '/' + 'info.txt', "rb"))
+        camp_info = pickle.load(open(f"{data_path}/info_{camp_n}.txt", 'rb'))
         test_budget = camp_info['cost_test']
         train_budget = camp_info['cost_train']
         test_imp = camp_info['imp_test']

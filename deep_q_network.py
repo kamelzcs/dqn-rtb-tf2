@@ -22,31 +22,33 @@ class q_estimator:
         self.action_size = action_size
         self.learning_rate = learning_rate
 
-        self.input_pl = tf.placeholder(dtype=np.float32, shape=(None, self.state_size),
+        tf.compat.v1.disable_eager_execution()
+
+        self.input_pl = tf.compat.v1.placeholder(dtype=np.float32, shape=(None, self.state_size),
                                        name=self.scope + 'input_pl')
-        self.target_pl = tf.placeholder(dtype=np.float32, shape=(None, self.action_size),
+        self.target_pl = tf.compat.v1.placeholder(dtype=np.float32, shape=(None, self.action_size),
                                         name=self.scope + 'output_pl')
 
-        self.first_hidden_layer = tf.layers.dense(self.input_pl, 100, activation=tf.nn.relu,
+        self.first_hidden_layer = tf.compat.v1.layers.dense(self.input_pl, 100, activation=tf.nn.relu,
                                                   kernel_initializer=tf.initializers.random_normal,
                                                   bias_initializer=tf.initializers.random_normal,
                                                   name=self.scope + '.first_hidden_layer')
-        self.second_hidden_layer = tf.layers.dense(self.first_hidden_layer, 100, activation=tf.nn.relu,
+        self.second_hidden_layer = tf.compat.v1.layers.dense(self.first_hidden_layer, 100, activation=tf.nn.relu,
                                                    kernel_initializer=tf.initializers.random_normal,
                                                    bias_initializer=tf.initializers.random_normal,
                                                    name=self.scope + '.second_hidden_layer')
-        self.third_hidden_layer = tf.layers.dense(self.second_hidden_layer, 100, activation=tf.nn.relu,
+        self.third_hidden_layer = tf.compat.v1.layers.dense(self.second_hidden_layer, 100, activation=tf.nn.relu,
                                                   kernel_initializer=tf.initializers.random_normal,
                                                   bias_initializer=tf.initializers.random_normal,
                                                   name=self.scope + '.third_hidden_layer')
-        self.output_layer = tf.layers.dense(self.third_hidden_layer, self.action_size,
+        self.output_layer = tf.compat.v1.layers.dense(self.third_hidden_layer, self.action_size,
                                             activation=tf.nn.relu, kernel_initializer=tf.initializers.random_normal,
                                             bias_initializer=tf.initializers.random_normal,
                                             name=self.scope + '.output_layer')
 
         self.loss = tf.losses.mean_squared_error(self.target_pl, self.output_layer)
-        self.optimizer = tf.train.AdamOptimizer(self.learning_rate, beta1=0.95).minimize(self.loss)
-        self.var_init = tf.global_variables_initializer()
+        self.optimizer = tf.compat.v1.train.AdamOptimizer(self.learning_rate, beta1=0.95).minimize(self.loss)
+        self.var_init = tf.compat.v1.global_variables_initializer()
 
     def predict_single(self, sess, state):
         """
