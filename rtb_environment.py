@@ -27,6 +27,7 @@ class RTB_environment:
         """
         self.camp_dict = camp_dict
         self.data_count = camp_dict['imp']
+        self.split_index = len(camp_dict['split']) - 1
 
         self.result_dict = {'auctions':0, 'impressions':0, 'click':0, 'cost':0, 'win-rate':0, 'eCPC':0, 'eCPI':0}
 
@@ -53,13 +54,15 @@ class RTB_environment:
                       self.winning_rate, self.ctr_value]
 
     def get_camp_data_minute(self):
-        cur_end_min = self.camp_dict['data'].iloc[self.data_count - 1].timestamp.minute
-        cur_end_hour = self.camp_dict['data'].iloc[self.data_count - 1].timestamp.hour
-        cur_start_min = cur_end_min // 15 * 15
+        # cur_end_min = self.camp_dict['data'].iloc[self.data_count - 1].timestamp.minute
+        # cur_end_hour = self.camp_dict['data'].iloc[self.data_count - 1].timestamp.hour
+        # cur_start_min = cur_end_min // 15 * 15
+        # while start_index >= 0 and self.camp_dict['data'].iloc[start_index].timestamp.hour == cur_end_hour and self.camp_dict['data'].iloc[start_index].timestamp.minute >= cur_start_min:
+        #     start_index -= 1
         start_index = self.data_count - 1
-        while start_index >= 0 and self.camp_dict['data'].iloc[start_index].timestamp.hour == cur_end_hour and self.camp_dict['data'].iloc[start_index].timestamp.minute >= cur_start_min:
+        while self.camp_dict['data'].iloc[start_index].timestamp > self.camp_dict['split'][self.split_index - 1]:
             start_index -= 1
-        print(f"data_count:{self.data_count}, time:{self.camp_dict['data'].iloc[self.data_count - 1].timestamp}, start_index: {start_index}, time{self.camp_dict['data'].iloc[start_index + 1].timestamp}")
+
         ctr_estimations = np.array(
             self.camp_dict['data'].iloc[start_index + 1: self.data_count, :]['pctr'])
         winning_bids = np.array(
@@ -68,6 +71,9 @@ class RTB_environment:
             self.camp_dict['data'].iloc[start_index + 1: self.data_count, :]['click'])
 
         self.data_count = start_index + 1
+        self.split_index -= 1
+        print(f"data_count:{self.data_count}, time:{self.camp_dict['data'].iloc[self.data_count - 1].timestamp}, start_index: {start_index}, time{self.camp_dict['data'].iloc[start_index + 1].timestamp}")
+
         return ctr_estimations, winning_bids, clicks
 
     def get_camp_data(self):
@@ -219,7 +225,23 @@ class RTB_environment:
                self.result_dict['win-rate'], self.result_dict['eCPC'], self.result_dict['eCPI']
 
 
+def get_split(data):
+    def internal(d):
+        min_time = d.timestamp.min()
+        max_time = d.timestamp.max()
+        delta = timedelta(minutes=15)
+        split = [max_time]
+        t = 1
+        while max_time - t * delta >= min_time:
+            split.insert(0, max_time - t * delta)
+            t += 1
+        split.insert(0, max_time - t * delta)
+        return split
+    return [internal(v) for v in data]
+
+
 def get_data(camp_n):
+
     """
     This function extracts data for certain specified campaigns
     from a folder in the current working directory.
@@ -242,9 +264,7 @@ def get_data(camp_n):
                                      header=None, index_col=False, sep=' ', names=['click', 'winprice', 'pctr', 'timestamp'])
             train_data.timestamp = pd.to_datetime(train_data.timestamp, format='%Y%m%d%H%M%S%f')
             train_data.sort_values('timestamp', inplace=True)
-            # min_time = train_data.timestamp.min()
-            # max_time = train_data.timestamp.max()
-            # delta = timedelta(minutes=15)
+            splits = get_split([train_data, test_data])
 
             camp_info = pickle.load(open(f"{data_path}/info_{camp}.txt", 'rb'))
             test_budget = camp_info['cost_test']
@@ -252,8 +272,8 @@ def get_data(camp_n):
             test_imp = camp_info['imp_test']
             train_imp = camp_info['imp_train']
 
-            train = {'imp':train_imp, 'budget':train_budget, 'data':train_data}
-            test = {'imp':test_imp, 'budget':test_budget, 'data':test_data}
+            train = {'imp':train_imp, 'budget':train_budget, 'data':train_data, 'split': splits[0]}
+            test = {'imp':test_imp, 'budget':test_budget, 'data':test_data, 'split': splits[1]}
 
             train_file_dict[camp] = train
             test_file_dict[camp] = test
