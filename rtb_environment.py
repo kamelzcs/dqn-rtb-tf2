@@ -1,3 +1,4 @@
+from datetime import timedelta
 
 import numpy as np
 import os
@@ -51,6 +52,24 @@ class RTB_environment:
                       self.budget_consumption_rate,
                       self.winning_rate, self.ctr_value]
 
+    def get_camp_data_minute(self):
+        cur_end_min = self.camp_dict['data'].iloc[self.data_count - 1].timestamp.minute
+        cur_end_hour = self.camp_dict['data'].iloc[self.data_count - 1].timestamp.hour
+        cur_start_min = cur_end_min // 15 * 15
+        start_index = self.data_count - 1
+        while start_index >= 0 and self.camp_dict['data'].iloc[start_index].timestamp.hour == cur_end_hour and self.camp_dict['data'].iloc[start_index].timestamp.minute >= cur_start_min:
+            start_index -= 1
+        print(f"data_count:{self.data_count}, time:{self.camp_dict['data'].iloc[self.data_count - 1].timestamp}, start_index: {start_index}, time{self.camp_dict['data'].iloc[start_index + 1].timestamp}")
+        ctr_estimations = np.array(
+            self.camp_dict['data'].iloc[start_index + 1: self.data_count, :]['pctr'])
+        winning_bids = np.array(
+            self.camp_dict['data'].iloc[start_index + 1: self.data_count, :]['winprice'])
+        clicks = list(
+            self.camp_dict['data'].iloc[start_index + 1: self.data_count, :]['click'])
+
+        self.data_count = start_index + 1
+        return ctr_estimations, winning_bids, clicks
+
     def get_camp_data(self):
         """
         This function updates the data variables which are then accessible
@@ -86,13 +105,14 @@ class RTB_environment:
         :param initial_Lambda: the initial scaling of ctr-estimations to form bids
         :return: initial state, zero reward and a false termination bool
         """
-        self.n_regulations = min(self.episode_length, self.data_count / self.step_length)
+        # self.n_regulations = min(self.episode_length, self.data_count / self.step_length)
+        self.n_regulations = self.episode_length
         self.budget = budget
         self.init_budget = budget * self.episode_length / self.n_regulations
         self.Lambda = initial_Lambda
         self.time_step = 0
 
-        ctr_estimations, winning_bids, clicks = self.get_camp_data()
+        ctr_estimations, winning_bids, clicks = self.get_camp_data_minute()
         bids = [int(i * (1 / self.Lambda)) for i in ctr_estimations]
         budget = self.budget
         self.budget_consumption_rate = 0
@@ -101,14 +121,14 @@ class RTB_environment:
         self.click = 0
         self.impressions = 0
 
-        for i in range(min(self.data_count, self.step_length)):
+        for i in range(len(ctr_estimations)):
             if bids[i] > winning_bids[i] and budget > bids[i]:
                 budget -= winning_bids[i]
                 self.impressions += 1
                 self.cost += winning_bids[i]
                 self.click += clicks[i]
                 self.ctr_value += ctr_estimations[i]
-                self.winning_rate += 1 / min(self.data_count, self.step_length)
+                self.winning_rate += 1 / len(ctr_estimations)
             else:
                 continue
 
@@ -139,7 +159,7 @@ class RTB_environment:
         """
         action = self.actions[action_index]
         self.Lambda = self.Lambda*(1 + action)
-        ctr_estimations, winning_bids, clicks = self.get_camp_data()
+        ctr_estimations, winning_bids, clicks = self.get_camp_data_minute()
 
         bids = [int(i*(1/self.Lambda)) for i in ctr_estimations]
         budget = self.budget
@@ -149,21 +169,21 @@ class RTB_environment:
         self.winning_rate = 0
         self.impressions = 0
 
-        for i in range(min(self.data_count, self.step_length)):
+        for i in range(len(ctr_estimations)):
             if bids[i] > winning_bids[i] and budget > bids[i]:
                 budget -= winning_bids[i]
                 self.impressions += 1
                 self.cost += winning_bids[i]
                 self.click += clicks[i]
                 self.ctr_value += ctr_estimations[i]
-                self.winning_rate += 1 / min(self.data_count, self.step_length)
+                self.winning_rate += 1 / len(ctr_estimations)
             else:
                 continue
 
         self.result_dict['impressions'] += self.impressions
         self.result_dict['click'] += self.click
         self.result_dict['cost'] += self.cost
-        self.result_dict['win-rate'] += self.winning_rate * min(self.data_count, self.step_length) / self.camp_dict['imp']
+        self.result_dict['win-rate'] += self.winning_rate * len(ctr_estimations) / self.camp_dict['imp']
 
         self.budget_consumption_rate = (self.budget - budget) / self.budget
         self.budget = budget
@@ -172,6 +192,7 @@ class RTB_environment:
 
         if self.time_step == self.episode_length or self.data_count == 0:
             self.termination = True
+            print(f"time_step: {self.time_step} time: {self.camp_dict['data'].iloc[self.data_count].timestamp}")
 
         self.state = [self.budget / self.init_budget, self.n_regulations,
                       self.budget_consumption_rate,
@@ -210,13 +231,21 @@ def get_data(camp_n):
     if type(camp_n) != str:
         train_file_dict = {}
         test_file_dict = {}
-        data_path = os.path.join(os.getcwd(), 'iPinYou_data')
+        data_path = os.path.join(os.getcwd(), 'iPinYou_data/enhanced')
 
         for camp in camp_n:
             test_data = pd.read_csv(f"{data_path}/test.theta_{camp}.txt",
-                                     header=None, index_col=False, sep=' ',names=['click', 'winprice', 'pctr'])
+                                     header=None, index_col=False, sep=' ',names=['click', 'winprice', 'pctr', 'timestamp'])
+            test_data.timestamp = pd.to_datetime(test_data.timestamp, format='%Y%m%d%H%M%S%f')
+            test_data.sort_values('timestamp', inplace=True)
             train_data = pd.read_csv(f"{data_path}/train.theta_{camp}.txt",
-                                     header=None, index_col=False, sep=' ', names=['click', 'winprice', 'pctr'])
+                                     header=None, index_col=False, sep=' ', names=['click', 'winprice', 'pctr', 'timestamp'])
+            train_data.timestamp = pd.to_datetime(train_data.timestamp, format='%Y%m%d%H%M%S%f')
+            train_data.sort_values('timestamp', inplace=True)
+            # min_time = train_data.timestamp.min()
+            # max_time = train_data.timestamp.max()
+            # delta = timedelta(minutes=15)
+
             camp_info = pickle.load(open(f"{data_path}/info_{camp}.txt", 'rb'))
             test_budget = camp_info['cost_test']
             train_budget = camp_info['cost_train']
