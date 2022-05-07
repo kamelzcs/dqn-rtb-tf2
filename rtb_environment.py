@@ -54,13 +54,9 @@ class RTB_environment:
                       self.winning_rate, self.ctr_value]
 
     def get_camp_data_minute(self):
-        # cur_end_min = self.camp_dict['data'].iloc[self.data_count - 1].timestamp.minute
-        # cur_end_hour = self.camp_dict['data'].iloc[self.data_count - 1].timestamp.hour
-        # cur_start_min = cur_end_min // 15 * 15
-        # while start_index >= 0 and self.camp_dict['data'].iloc[start_index].timestamp.hour == cur_end_hour and self.camp_dict['data'].iloc[start_index].timestamp.minute >= cur_start_min:
-        #     start_index -= 1
         start_index = self.data_count - 1
-        while self.camp_dict['data'].iloc[start_index].timestamp > self.camp_dict['split'][self.split_index - 1]:
+        while start_index >= 0 and\
+                self.camp_dict['data'].iloc[start_index].timestamp > self.camp_dict['split'][self.split_index - 1]:
             start_index -= 1
 
         ctr_estimations = np.array(
