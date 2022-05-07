@@ -3,6 +3,8 @@ import numpy as np
 import tensorflow as tf
 
 from agent import agent
+from ddpg.agent import DDPG_Agent
+from ddpg_test import ddpg_test
 from rtb_environment import RTB_environment, get_data
 from drlb_test import drlb_test
 from lin_bid_test import lin_bidding_test
@@ -37,13 +39,11 @@ def parameter_camp_test(parameter_list):
 
     action_size = 7
     state_size = 5
-    tf.compat.v1.reset_default_graph()
-    np.random.seed(seed)
-    tf.compat.v1.set_random_seed(seed)
-    sess = tf.compat.v1.Session()
-    rtb_agent = agent(epsilon_max, epsilon_min, epsilon_decay_rate,
-                  discount_factor, batch_size, memory_cap,
-                  state_size, action_size, learning_rate, sess)
+    # tf.compat.v1.reset_default_graph()
+    # np.random.seed(seed)
+    # tf.compat.v1.set_random_seed(seed)
+    # sess = tf.compat.v1.Session()
+    rtb_agent = DDPG_Agent()
 
     camp_n = ['1458', '2259', '2997', '2821', '3358', '2261', '3386', '3427', '3476']
     train_file_dict, test_file_dict = get_data(camp_n)
@@ -64,31 +64,33 @@ def parameter_camp_test(parameter_list):
 
             state, reward, termination = rtb_environment.reset(budget, initial_Lambda)
             while not termination:
-                action, _, _ = rtb_agent.action(state)
-                next_state, reward, termination = rtb_environment.step(rtb_environment.actions[action])
+                action = rtb_agent.policy(state)
+                next_state, reward, termination = rtb_environment.step(action[0])
 
                 memory_sample = (action, state, reward, next_state, termination)
-                rtb_agent.replay_memory.store_sample(memory_sample)
-                rtb_agent.q_learning()
-                if global_step_counter % update_frequency == 0:
-                    rtb_agent.target_network_update()
-
-                rtb_agent.e_greedy_policy.epsilon_update(global_step_counter)
+                rtb_agent.buffer.record(memory_sample)
+                rtb_agent.buffer.learn()
+                # if global_step_counter % update_frequency == 0:
+                #     rtb_agent.target_network_update()
+                #
+                # rtb_agent.e_greedy_policy.epsilon_update(global_step_counter)
+                rtb_agent.update_target(rtb_agent.target_actor.variables, rtb_agent.actor_model.variables)
+                rtb_agent.update_target(rtb_agent.target_critic.variables, rtb_agent.critic_model.variables)
                 state = next_state
                 global_step_counter += 1
 
-    epsilon = rtb_agent.e_greedy_policy.epsilon
+    # epsilon = rtb_agent.e_greedy_policy.epsilon
     budget = total_budget / total_impressions * test_file_dict['imp'] * budget_scaling
-    imp, click, cost, wr, ecpc, ecpi, camp_info = drlb_test(test_file_dict, budget, initial_Lambda, rtb_agent,
+    imp, click, cost, wr, ecpc, ecpi, camp_info = ddpg_test(test_file_dict, budget, initial_Lambda, rtb_agent,
                                                             episode_length, step_length)
-    sess.close()
+    # sess.close()
     lin_bid_result = list(lin_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'historical'))
     rand_bid_result = list(rand_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'uniform'))
 
 
-    result_dict = {'camp_id':camp_id, 'parameters': parameter_list[1:], 'epsilon':epsilon, 'total budget':budget,
+    result_dict = {'camp_id':camp_id, 'parameters': parameter_list[1:], 'total budget':budget,
                    'auctions': test_file_dict['imp'],
                    'camp_result': np.array([imp, click, cost, wr, ecpc, ecpi]).tolist(), 'budget':camp_info[0],
-                   'lambda':camp_info[1], 'unimod':camp_info[2], 'action values':camp_info[3],
+                   'lambda':camp_info[1], 'action values':camp_info[2],
                    'lin_bid_result':lin_bid_result, 'rand_bid_result':rand_bid_result}
     return result_dict

@@ -3,7 +3,7 @@ import numpy as np
 
 from rtb_environment import RTB_environment
 
-def drlb_test(test_file_dict, budget, initial_Lambda, agent, episode_length, step_length):
+def ddpg_test(test_file_dict, budget, initial_Lambda, agent, episode_length, step_length):
     """
     This function tests a bidding agent on a number of auctions from
     a single campaign and outputs the results.
@@ -13,11 +13,9 @@ def drlb_test(test_file_dict, budget, initial_Lambda, agent, episode_length, ste
     :param budget_scaling: a scaling parameter for the budget
     :return:
     """
-    agent.e_greedy_policy.epsilon = 0
     test_environment = RTB_environment(test_file_dict, episode_length, step_length)
     budget_list = []
     Lambda_list = []
-    unimod_test_list = []
     action_value_list = []
     episode_budget = 0
 
@@ -26,17 +24,16 @@ def drlb_test(test_file_dict, budget, initial_Lambda, agent, episode_length, ste
                          / test_file_dict['imp'] * budget + episode_budget
         state, reward, termination = test_environment.reset(episode_budget, initial_Lambda)
         while not termination:
-            action, unimod_test_val, action_value = agent.action(state)
-            next_state, reward, termination = test_environment.step(test_environment.actions[action])
+            action = agent.policy(state)
+            next_state, reward, termination = test_environment.step(action[0])
             state = next_state
 
             budget_list.append(test_environment.budget)
             Lambda_list.append(test_environment.Lambda)
-            unimod_test_list.append(unimod_test_val)
-            action_value_list.append(action_value)
+            action_value_list.append(action[0])
         episode_budget = test_environment.budget
     impressions, click, cost, win_rate, ecpc, ecpi = test_environment.result()
 
     return impressions, click, cost, win_rate, ecpc, ecpi, \
            [np.array(budget_list).tolist(), np.array(Lambda_list).tolist(),
-            np.array(unimod_test_list).tolist(), np.array(action_value_list).tolist()]
+            np.array(action_value_list).tolist()]

@@ -126,7 +126,7 @@ class RTB_environment:
 
         return self.state, reward, self.termination
 
-    def step(self, action_index):
+    def step(self, action):
         """
         This function takes an action from the bidding agent (i.e.
         a change in the ctr-estimation scaling, and uses it to compute
@@ -137,7 +137,6 @@ class RTB_environment:
         :param action_index: an index for the list of allowed actions
         :return: a new state, reward and termination bool (if time_step = 96)
         """
-        action = self.actions[action_index]
         self.Lambda = self.Lambda*(1 + action)
         ctr_estimations, winning_bids, clicks = self.get_camp_data()
 
