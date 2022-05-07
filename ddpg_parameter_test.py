@@ -70,12 +70,11 @@ def parameter_camp_test(parameter_list):
                 memory_sample = (action, state, reward, next_state, termination)
                 rtb_agent.buffer.record(memory_sample)
                 rtb_agent.buffer.learn()
-                # if global_step_counter % update_frequency == 0:
-                #     rtb_agent.target_network_update()
+                if global_step_counter % update_frequency == 0:
+                    rtb_agent.update_target(rtb_agent.target_actor.variables, rtb_agent.actor_model.variables)
+                    rtb_agent.update_target(rtb_agent.target_critic.variables, rtb_agent.critic_model.variables)
                 #
                 # rtb_agent.e_greedy_policy.epsilon_update(global_step_counter)
-                rtb_agent.update_target(rtb_agent.target_actor.variables, rtb_agent.actor_model.variables)
-                rtb_agent.update_target(rtb_agent.target_critic.variables, rtb_agent.critic_model.variables)
                 state = next_state
                 global_step_counter += 1
 

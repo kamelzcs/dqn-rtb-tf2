@@ -2,8 +2,8 @@ import ddpg_parameter_test
 from parameter_test import parameter_camp_test
 
 def main():
-    # ddpg_test()
-    dnq_test()
+    ddpg_test()
+    # dnq_test()
 
 
 def dnq_test():
