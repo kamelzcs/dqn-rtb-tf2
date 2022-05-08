@@ -36,7 +36,7 @@ class DDPG_Agent:
         # Discount factor for future rewards
         gamma = 1.0
         # Used to update target networks
-        self.tau = 0.005
+        self.tau = 0.05
 
         self.buffer = Buffer(gamma=gamma, target_actor=self.target_actor, target_critic=self.target_critic,
                              critic_model=self.critic_model, critic_optimizer=critic_optimizer,
@@ -50,7 +50,7 @@ class DDPG_Agent:
         # We make sure action is within bounds
         legal_action = np.clip(sampled_actions, self.lower_bound, self.upper_bound)
 
-        return [np.squeeze(legal_action)]
+        return [np.squeeze(legal_action)], np.squeeze(self.critic_model([np.expand_dims(state, axis=0), legal_action], training=False))
 
     # This update target parameters slowly
     # Based on rate `tau`, which is much less than one.
