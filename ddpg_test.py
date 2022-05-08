@@ -24,13 +24,13 @@ def ddpg_test(test_file_dict, budget, initial_Lambda, agent, episode_length, ste
                          / test_file_dict['imp'] * budget + episode_budget
         state, reward, termination = test_environment.reset(episode_budget, initial_Lambda)
         while not termination:
-            action = agent.policy(state)
+            action, action_value = agent.policy(state)
             next_state, reward, termination = test_environment.step(action[0])
             state = next_state
 
             budget_list.append(test_environment.budget)
             Lambda_list.append(test_environment.Lambda)
-            action_value_list.append(action[0])
+            action_value_list.append(action_value)
         episode_budget = test_environment.budget
     impressions, click, cost, win_rate, ecpc, ecpi = test_environment.result()
 

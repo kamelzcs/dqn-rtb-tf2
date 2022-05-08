@@ -64,7 +64,7 @@ def parameter_camp_test(parameter_list):
 
             state, reward, termination = rtb_environment.reset(budget, initial_Lambda)
             while not termination:
-                action = rtb_agent.policy(state)
+                action, _ = rtb_agent.policy(state)
                 next_state, reward, termination = rtb_environment.step(action[0])
 
                 memory_sample = (action, state, reward, next_state, termination)
