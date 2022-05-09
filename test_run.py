@@ -1,23 +1,45 @@
+import random
+
 import ddpg_parameter_test
 from parameter_test import parameter_camp_test
 import json
 
+
 def main():
-    ddpg_test()
-    # dnq_test()
+    with open('test_result/dnq_multi', 'w') as dnq_multi, open('test_result/ddpg_multi', 'w') as ddpg_multi:
+        json.dump(ddpg_test(), ddpg_multi)
+        json.dump(dnq_test(), dnq_multi)
+
 
 
 def dnq_test():
-    alpha = [1e-4]
-    for al in alpha:
-        parameter_test = ['1458', 1.0 / 32] + [al] + [0.0001, 2500, 500, 1e-4, 1]
+    imp_threshold = 50000
+    click_threshold = 400
+    results = []
+    for i in range(20):
+        parameter_test = ['1458', 1.0 / 32] + [1e-4] + [0.0001, 2500, 500, 1e-4, random.randint(0, 100)]
         result = parameter_camp_test(parameter_test)
+        camp_result = result['camp_result']
+        results.append(result)
         print(json.dumps(result))
+        if camp_result[0] >= imp_threshold and camp_result[1] >= click_threshold:
+            break
+    return results
+
 
 def ddpg_test():
-    parameter_test = ['1458', 1.0 / 32, 1e-4, 0.0001, 2500, 500, 1e-4, 1]
-    result = ddpg_parameter_test.parameter_camp_test(parameter_test)
-    print(json.dumps(result))
+    imp_threshold = 50000
+    click_threshold = 400
+    results = []
+    for i in range(20):
+        parameter_test = ['1458', 1.0 / 32] + [1e-4] + [0.0001, 2500, 500, 1e-4, random.randint(0, 100)]
+        result = ddpg_parameter_test.parameter_camp_test(parameter_test)
+        camp_result = result['camp_result']
+        results.append(result)
+        print(json.dumps(result))
+        if camp_result[0] >= imp_threshold and camp_result[1] >= click_threshold:
+            break
+    return results
 
 
 if __name__ == "__main__":
