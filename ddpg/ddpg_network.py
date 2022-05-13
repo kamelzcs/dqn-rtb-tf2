@@ -41,7 +41,7 @@ class DDPG_Network:
         out = layers.Dense(50, activation="relu")(concat)
         out = layers.Dense(50, activation="relu")(out)
         out = layers.Dense(50, activation="relu")(out)
-        outputs = layers.Dense(1)(out)
+        outputs = layers.Dense(1, activation=tf.nn.relu)(out)
 
         # Outputs single value for give state-action
         model = tf.keras.Model([state_input, action_input], outputs)

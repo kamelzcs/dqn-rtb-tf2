@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 from agent import agent
-from rtb_environment import RTB_environment, get_data
+from rtb_environment_timestamp_split import RTB_environment, get_data
 from drlb_test import drlb_test
 from lin_bid_test import lin_bidding_test
 from rand_bid_test import rand_bidding_test

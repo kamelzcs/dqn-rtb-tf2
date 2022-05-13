@@ -36,7 +36,7 @@ class DDPG_Agent:
         # Discount factor for future rewards
         gamma = 1.0
         # Used to update target networks
-        self.tau = 0.05
+        self.tau = 1e-4
 
         self.buffer = Buffer(gamma=gamma, target_actor=self.target_actor, target_critic=self.target_critic,
                              critic_model=self.critic_model, critic_optimizer=critic_optimizer,

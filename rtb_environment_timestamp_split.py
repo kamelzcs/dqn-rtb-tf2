@@ -68,7 +68,7 @@ class RTB_environment:
 
         self.data_count = start_index + 1
         self.split_index -= 1
-        print(f"data_count:{self.data_count}, time:{self.camp_dict['data'].iloc[self.data_count - 1].timestamp}, start_index: {start_index}, time{self.camp_dict['data'].iloc[start_index + 1].timestamp}")
+        # print(f"data_count:{self.data_count}, time:{self.camp_dict['data'].iloc[self.data_count - 1].timestamp}, start_index: {start_index}, time{self.camp_dict['data'].iloc[start_index + 1].timestamp}")
 
         return ctr_estimations, winning_bids, clicks
 
@@ -148,7 +148,7 @@ class RTB_environment:
 
         return self.state, reward, self.termination
 
-    def step(self, action_index):
+    def step(self, action):
         """
         This function takes an action from the bidding agent (i.e.
         a change in the ctr-estimation scaling, and uses it to compute
@@ -159,7 +159,6 @@ class RTB_environment:
         :param action_index: an index for the list of allowed actions
         :return: a new state, reward and termination bool (if time_step = 96)
         """
-        action = self.actions[action_index]
         self.Lambda = self.Lambda*(1 + action)
         ctr_estimations, winning_bids, clicks = self.get_camp_data_minute()
 

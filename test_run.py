@@ -3,10 +3,13 @@ import random
 import ddpg_parameter_test
 from parameter_test import parameter_camp_test
 import json
-
+import faulthandler
+import signal
 
 def main():
-    with open('test_result/dnq_multi', 'w') as dnq_multi, open('test_result/ddpg_multi', 'w') as ddpg_multi:
+    # faulthandler.enable()
+    # faulthandler.register(signal.SIGINT.value)
+    with open('test_result/time_split_dnq_multi', 'w') as dnq_multi, open('test_result/time_split_ddpg_multi', 'w') as ddpg_multi:
         json.dump(ddpg_test(), ddpg_multi)
         json.dump(dnq_test(), dnq_multi)
 
