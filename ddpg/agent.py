@@ -12,8 +12,9 @@ class DDPG_Agent:
         self.lower_bound = -0.1
 
         std_dev = 0.2
+        num_states = 96 + 5
         self.ou_noise = OUActionNoise(mean=np.zeros(1), std_deviation=float(std_dev) * np.ones(1))
-        ddpg = DDPG_Network()
+        ddpg = DDPG_Network(num_states=num_states)
 
         self.actor_model = ddpg.get_actor()
         self.critic_model = ddpg.get_critic()
@@ -40,7 +41,9 @@ class DDPG_Agent:
 
         self.buffer = Buffer(gamma=gamma, target_actor=self.target_actor, target_critic=self.target_critic,
                              critic_model=self.critic_model, critic_optimizer=critic_optimizer,
-                             actor_model=self.actor_model, actor_optimizer=actor_optimizer)
+                             actor_model=self.actor_model, actor_optimizer=actor_optimizer,
+                             num_states=num_states
+                             )
 
     def policy(self, state):
         sampled_actions = tf.squeeze(self.actor_model(np.expand_dims(state, axis=0)))

@@ -1,4 +1,3 @@
-
 import numpy as np
 import tensorflow as tf
 
@@ -8,7 +7,8 @@ from drlb_test import drlb_test
 from lin_bid_test import lin_bidding_test
 from rand_bid_test import rand_bidding_test
 
-#parameter_list = [camp_id, epsilon_decay_rate, budget_scaling, budget_init_variance, initial_Lambda]
+
+# parameter_list = [camp_id, epsilon_decay_rate, budget_scaling, budget_init_variance, initial_Lambda]
 
 def parameter_camp_test(parameter_list):
     """
@@ -34,16 +34,15 @@ def parameter_camp_test(parameter_list):
     learning_rate = parameter_list[6]
     seed = parameter_list[7]
 
-
     action_size = 7
-    state_size = 5
+    state_size = 96 + 5
     tf.compat.v1.reset_default_graph()
     np.random.seed(seed)
     tf.compat.v1.set_random_seed(seed)
     sess = tf.compat.v1.Session()
     rtb_agent = agent(epsilon_max, epsilon_min, epsilon_decay_rate,
-                  discount_factor, batch_size, memory_cap,
-                  state_size, action_size, learning_rate, sess)
+                      discount_factor, batch_size, memory_cap,
+                      state_size, action_size, learning_rate, sess)
 
     camp_n = ['1458', '2259', '2997', '2821', '3358', '2261', '3386', '3427', '3476']
     train_file_dict, test_file_dict = get_data(camp_n)
@@ -85,10 +84,9 @@ def parameter_camp_test(parameter_list):
     lin_bid_result = list(lin_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'historical'))
     rand_bid_result = list(rand_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'uniform'))
 
-
-    result_dict = {'camp_id':camp_id, 'parameters': parameter_list[1:], 'epsilon':epsilon, 'total budget':budget,
+    result_dict = {'camp_id': camp_id, 'parameters': parameter_list[1:], 'epsilon': epsilon, 'total budget': budget,
                    'auctions': test_file_dict['imp'],
-                   'camp_result': np.array([imp, click, cost, wr, ecpc, ecpi]).tolist(), 'budget':camp_info[0],
-                   'lambda':camp_info[1], 'unimod':camp_info[2], 'action values':camp_info[3],
-                   'lin_bid_result':lin_bid_result, 'rand_bid_result':rand_bid_result}
+                   'camp_result': np.array([imp, click, cost, wr, ecpc, ecpi]).tolist(), 'budget': camp_info[0],
+                   'lambda': camp_info[1], 'unimod': camp_info[2], 'action values': camp_info[3],
+                   'lin_bid_result': lin_bid_result, 'rand_bid_result': rand_bid_result}
     return result_dict

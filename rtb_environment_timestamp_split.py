@@ -6,6 +6,8 @@ import pandas as pd
 import pickle as pickle
 import matplotlib.pyplot as plt
 
+import utils
+
 
 class RTB_environment:
     """
@@ -49,7 +51,7 @@ class RTB_environment:
         self.impressions = 0
         self.termination = True
 
-        self.state = [self.budget / self.init_budget, self.n_regulations,
+        self.state = utils.one_hot_encode(self.n_regulations - 1, self.episode_length) + [self.budget / self.init_budget, self.n_regulations,
                       self.budget_consumption_rate,
                       self.winning_rate, self.ctr_value]
 
@@ -134,7 +136,7 @@ class RTB_environment:
             else:
                 continue
 
-        self.state = [self.budget / self.init_budget, self.n_regulations,
+        self.state = utils.one_hot_encode(self.n_regulations - 1, self.episode_length) + [self.budget / self.init_budget, self.n_regulations,
                       self.budget_consumption_rate,
                       self.winning_rate, self.ctr_value]
 
@@ -195,7 +197,7 @@ class RTB_environment:
             self.termination = True
             print(f"time_step: {self.time_step} time: {self.camp_dict['data'].iloc[self.data_count].timestamp}")
 
-        self.state = [self.budget / self.init_budget, self.n_regulations,
+        self.state = utils.one_hot_encode(self.n_regulations - 1, self.episode_length) + [self.budget / self.init_budget, self.n_regulations,
                       self.budget_consumption_rate,
                       self.winning_rate, self.ctr_value]
 
