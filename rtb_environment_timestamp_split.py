@@ -222,11 +222,11 @@ class RTB_environment:
                self.result_dict['win-rate'], self.result_dict['eCPC'], self.result_dict['eCPI']
 
 
-def get_split(data):
+def get_split(data, episode_length):
     def internal(d):
         min_time = d.timestamp.min()
         max_time = d.timestamp.max()
-        delta = timedelta(minutes=15)
+        delta = timedelta(minutes=24 * 60 // episode_length)
         split = [max_time]
         t = 1
         while max_time - t * delta >= min_time:
@@ -237,7 +237,7 @@ def get_split(data):
     return [internal(v) for v in data]
 
 
-def get_data(camp_n):
+def get_data(camp_n, episode_length):
 
     """
     This function extracts data for certain specified campaigns
@@ -261,7 +261,7 @@ def get_data(camp_n):
                                      header=None, index_col=False, sep=' ', names=['click', 'winprice', 'pctr', 'timestamp'])
             train_data.timestamp = pd.to_datetime(train_data.timestamp, format='%Y%m%d%H%M%S%f')
             train_data.sort_values('timestamp', inplace=True)
-            splits = get_split([train_data, test_data])
+            splits = get_split([train_data, test_data], episode_length)
 
             camp_info = pickle.load(open(f"{data_path}/info_{camp}.txt", 'rb'))
             test_budget = camp_info['cost_test']

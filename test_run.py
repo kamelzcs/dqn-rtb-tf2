@@ -21,7 +21,7 @@ def dnq_test():
     click_threshold = 400
     results = []
     for i in range(20):
-        parameter_test = ['1458', 1.0 / 32] + [1e-4] + [0.0001, 2500, 500, 1e-4, random.randint(0, 100)]
+        parameter_test = ['1458', 1.0 / 32] + [1e-4] + [0.0001, 2500, 500, 1e-4, random.randint(0, 100), 96]
         result = parameter_camp_test(parameter_test)
         camp_result = result['camp_result']
         results.append(result)
@@ -36,7 +36,7 @@ def ddpg_test():
     click_threshold = 400
     results = []
     for i in range(20):
-        parameter_test = ['1458', 1.0 / 32] + [1e-4] + [0.0001, 2500, 500, 1e-4, random.randint(0, 100)]
+        parameter_test = ['1458', 1.0 / 32] + [1e-4] + [0.0001, 2500, 500, 1e-4, random.randint(0, 100), 96]
         result = ddpg_parameter_test.parameter_camp_test(parameter_test)
         camp_result = result['camp_result']
         results.append(result)

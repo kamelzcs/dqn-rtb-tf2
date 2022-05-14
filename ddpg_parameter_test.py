@@ -20,18 +20,18 @@ def parameter_camp_test(parameter_list):
     """
 
     update_frequency = 100
-    episode_length = 96
 
     camp_id = parameter_list[0]
     budget_scaling = parameter_list[1]
     initial_Lambda = parameter_list[2]
     budget_init_var = parameter_list[4] * budget_scaling
     step_length = parameter_list[5]
+    episode_length = parameter_list[6]
 
-    rtb_agent = DDPG_Agent()
+    rtb_agent = DDPG_Agent(episode_length)
 
     camp_n = ['1458', '2259', '2997', '2821', '3358', '2261', '3386', '3427', '3476']
-    train_file_dict, test_file_dict = get_data(camp_n)
+    train_file_dict, test_file_dict = get_data(camp_n, episode_length)
     test_file_dict = test_file_dict[camp_id]
     total_budget = 0
     total_impressions = 0

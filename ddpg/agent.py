@@ -7,12 +7,12 @@ from ddpg.ddpg_network import DDPG_Network
 
 
 class DDPG_Agent:
-    def __init__(self):
+    def __init__(self, episode_length=96):
         self.upper_bound = 0.1
         self.lower_bound = -0.1
 
         std_dev = 0.2
-        num_states = 96 + 5
+        num_states = episode_length + 5
         self.ou_noise = OUActionNoise(mean=np.zeros(1), std_deviation=float(std_dev) * np.ones(1))
         ddpg = DDPG_Network(num_states=num_states)
 

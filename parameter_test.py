@@ -23,7 +23,6 @@ def parameter_camp_test(parameter_list):
     batch_size = 32
     memory_cap = 100000
     update_frequency = 100
-    episode_length = 96
 
     camp_id = parameter_list[0]
     budget_scaling = parameter_list[1]
@@ -33,9 +32,10 @@ def parameter_camp_test(parameter_list):
     step_length = parameter_list[5]
     learning_rate = parameter_list[6]
     seed = parameter_list[7]
+    episode_length = parameter_list[8]
 
     action_size = 7
-    state_size = 96 + 5
+    state_size = episode_length + 5
     tf.compat.v1.reset_default_graph()
     np.random.seed(seed)
     tf.compat.v1.set_random_seed(seed)
@@ -45,7 +45,7 @@ def parameter_camp_test(parameter_list):
                       state_size, action_size, learning_rate, sess)
 
     camp_n = ['1458', '2259', '2997', '2821', '3358', '2261', '3386', '3427', '3476']
-    train_file_dict, test_file_dict = get_data(camp_n)
+    train_file_dict, test_file_dict = get_data(camp_n, episode_length)
     test_file_dict = test_file_dict[camp_id]
     total_budget = 0
     total_impressions = 0
