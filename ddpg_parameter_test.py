@@ -4,7 +4,7 @@ import tensorflow as tf
 from agent import agent
 from ddpg.agent import DDPG_Agent
 from ddpg_test import ddpg_test
-from rtb_environment_timestamp_split import RTB_environment, get_data
+from rtb_environment import RTB_environment, get_data
 from drlb_test import drlb_test
 from lin_bid_test import lin_bidding_test
 from rand_bid_test import rand_bidding_test
@@ -31,7 +31,7 @@ def parameter_camp_test(parameter_list):
     rtb_agent = DDPG_Agent(episode_length)
 
     camp_n = ['1458', '2259', '2997', '2821', '3358', '2261', '3386', '3427', '3476']
-    train_file_dict, test_file_dict = get_data(camp_n, episode_length)
+    train_file_dict, test_file_dict = get_data(camp_n)
     test_file_dict = test_file_dict[camp_id]
     total_budget = 0
     total_impressions = 0

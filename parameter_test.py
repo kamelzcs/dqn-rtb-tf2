@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from agent import agent
-from rtb_environment_timestamp_split import RTB_environment, get_data
+from rtb_environment import RTB_environment, get_data
 from drlb_test import drlb_test
 from lin_bid_test import lin_bidding_test
 from rand_bid_test import rand_bidding_test
@@ -35,7 +35,7 @@ def parameter_camp_test(parameter_list):
     episode_length = parameter_list[8]
 
     action_size = 7
-    state_size = episode_length + 5
+    state_size = 5
     tf.compat.v1.reset_default_graph()
     np.random.seed(seed)
     tf.compat.v1.set_random_seed(seed)
@@ -45,7 +45,7 @@ def parameter_camp_test(parameter_list):
                       state_size, action_size, learning_rate, sess)
 
     camp_n = ['1458', '2259', '2997', '2821', '3358', '2261', '3386', '3427', '3476']
-    train_file_dict, test_file_dict = get_data(camp_n, episode_length)
+    train_file_dict, test_file_dict = get_data(camp_n)
     test_file_dict = test_file_dict[camp_id]
     total_budget = 0
     total_impressions = 0

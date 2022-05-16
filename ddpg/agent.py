@@ -12,7 +12,7 @@ class DDPG_Agent:
         self.lower_bound = -0.1
 
         std_dev = 0.2
-        num_states = episode_length + 5
+        num_states = 5
         self.ou_noise = OUActionNoise(mean=np.zeros(1), std_deviation=float(std_dev) * np.ones(1))
         ddpg = DDPG_Network(num_states=num_states)
 

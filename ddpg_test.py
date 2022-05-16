@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from rtb_environment_timestamp_split import RTB_environment
+from rtb_environment import RTB_environment
 
 def ddpg_test(test_file_dict, budget, initial_Lambda, agent, episode_length, step_length):
     """

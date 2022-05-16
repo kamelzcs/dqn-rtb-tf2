@@ -237,7 +237,7 @@ def get_split(data, episode_length):
     return [internal(v) for v in data]
 
 
-def get_data(camp_n, episode_length):
+def get_data(camp_n):
 
     """
     This function extracts data for certain specified campaigns
