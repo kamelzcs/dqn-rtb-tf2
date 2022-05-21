@@ -131,6 +131,7 @@ class RTB_environment:
         self.click = 0
         self.impressions = 0
         self.episode_optimal_reward = solve(self.episode_ctr_estimations, self.episode_winning_bids, self.budget)
+        print(f'optional_reward: {self.episode_optimal_reward}')
 
         for i in range(min(self.data_count, self.step_length)):
             if bids[i] > winning_bids[i] and budget > bids[i]:
@@ -152,7 +153,7 @@ class RTB_environment:
         self.budget = budget
         self.n_regulations -= 1
         self.time_step += 1
-        self.episode_cur_reward += self.ctr_value
+        self.episode_cur_reward = self.ctr_value
 
         reward = self.ctr_value
         self.termination = False
@@ -192,7 +193,7 @@ class RTB_environment:
                 self.winning_rate += 1 / min(self.data_count, self.step_length)
             else:
                 continue
-
+        self.episode_cur_reward += self.ctr_value
         self.result_dict['impressions'] += self.impressions
         self.result_dict['click'] += self.click
         self.result_dict['cost'] += self.cost
@@ -234,7 +235,7 @@ class RTB_environment:
     def get_reward_until_episode_end(self):
         budget = self.budget
         result = 0
-        for i in range(self.current_episode_start_index, self.data_count):
+        for i in range(self.current_episode_start_index, max(0, self.data_count - self.step_length)):
             index = i - self.current_episode_start_index
             bid = int(self.episode_ctr_estimations[index] * (1 / self.Lambda))
             if self.episode_winning_bids[index] < bid < budget:

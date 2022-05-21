@@ -20,11 +20,13 @@ def drlb_test(test_file_dict, budget, initial_Lambda, agent, episode_length, ste
     unimod_test_list = []
     action_value_list = []
     episode_budget = 0
+    optimal_reward = 0
 
     while test_environment.data_count > 0:
         episode_budget = min(episode_length * step_length, test_environment.data_count)\
                          / test_file_dict['imp'] * budget + episode_budget
         state, reward, termination = test_environment.reset(episode_budget, initial_Lambda)
+        optimal_reward += test_environment.solve(test_environment.episode_ctr_estimations, test_environment.episode_winning_bids, test_environment.budget)
         while not termination:
             action, unimod_test_val, action_value = agent.action(state)
             next_state, reward, termination = test_environment.step(test_environment.actions[action])
@@ -37,6 +39,6 @@ def drlb_test(test_file_dict, budget, initial_Lambda, agent, episode_length, ste
         episode_budget = test_environment.budget
     impressions, click, cost, win_rate, ecpc, ecpi = test_environment.result()
 
-    return impressions, click, cost, win_rate, ecpc, ecpi, \
+    return impressions, click, cost, win_rate, ecpc, ecpi, optimal_reward\
            [np.array(budget_list).tolist(), np.array(Lambda_list).tolist(),
             np.array(unimod_test_list).tolist(), np.array(action_value_list).tolist()]
