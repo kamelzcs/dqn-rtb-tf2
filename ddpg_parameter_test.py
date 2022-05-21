@@ -65,7 +65,7 @@ def parameter_camp_test(parameter_list):
 
     # epsilon = rtb_agent.e_greedy_policy.epsilon
     budget = total_budget / total_impressions * test_file_dict['imp'] * budget_scaling
-    imp, click, cost, wr, ecpc, ecpi, camp_info = ddpg_test(test_file_dict, budget, initial_Lambda, rtb_agent,
+    imp, click, cost, wr, ecpc, ecpi, camp_info, optimal_reward = ddpg_test(test_file_dict, budget, initial_Lambda, rtb_agent,
                                                             episode_length, step_length)
     # sess.close()
     lin_bid_result = list(lin_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'historical'))

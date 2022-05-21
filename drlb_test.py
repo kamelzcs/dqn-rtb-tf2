@@ -2,6 +2,8 @@
 import numpy as np
 
 from rtb_environment import RTB_environment
+from solver.optimal_solver import solve
+
 
 def drlb_test(test_file_dict, budget, initial_Lambda, agent, episode_length, step_length):
     """
@@ -26,7 +28,7 @@ def drlb_test(test_file_dict, budget, initial_Lambda, agent, episode_length, ste
         episode_budget = min(episode_length * step_length, test_environment.data_count)\
                          / test_file_dict['imp'] * budget + episode_budget
         state, reward, termination = test_environment.reset(episode_budget, initial_Lambda)
-        optimal_reward += test_environment.solve(test_environment.episode_ctr_estimations, test_environment.episode_winning_bids, test_environment.budget)
+        optimal_reward += solve(test_environment.episode_ctr_estimations, test_environment.episode_winning_bids, test_environment.budget)
         while not termination:
             action, unimod_test_val, action_value = agent.action(state)
             next_state, reward, termination = test_environment.step(test_environment.actions[action])

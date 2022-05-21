@@ -131,7 +131,7 @@ class RTB_environment:
         self.click = 0
         self.impressions = 0
         self.episode_optimal_reward = solve(self.episode_ctr_estimations, self.episode_winning_bids, self.budget)
-        print(f'optional_reward: {self.episode_optimal_reward}')
+        # print(f'optional_reward: {self.episode_optimal_reward}')
 
         for i in range(min(self.data_count, self.step_length)):
             if bids[i] > winning_bids[i] and budget > bids[i]:
