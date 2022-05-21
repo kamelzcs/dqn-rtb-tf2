@@ -12,13 +12,13 @@ from enum import Enum
 
 
 class Solver(Enum):
-    GLPK = 1
+    CBC = 1
     HIGHS = 2
 
 
 # %%
-def solve(ctrs: ndarray, costs: ndarray, budget: float, solver: Solver = Solver.HIGHS):
-    if solver == Solver.GLPK:
+def solve(ctrs: ndarray, costs: ndarray, budget: float, solver: Solver = Solver.CBC):
+    if solver == Solver.CBC:
         model = pyo.ConcreteModel()
         model.x = pyo.Var(pyo.RangeSet(0, len(ctrs) - 1), domain=pyo.NonNegativeReals, bounds=(0, 1))
         model.y = pyo.Objective(
@@ -27,7 +27,7 @@ def solve(ctrs: ndarray, costs: ndarray, budget: float, solver: Solver = Solver.
         )
         model.Constraint1 = pyo.Constraint(
             expr=sum([costs[i] * model.x[i] for i in range(len(ctrs))]) <= budget)
-        opt = pyo.SolverFactory('glpk')
+        opt = pyo.SolverFactory('cbc')
         opt.solve(model)
         return model.y()
         # return model.y(), [model.x[i].value for i in model.x]
@@ -40,4 +40,4 @@ def solve(ctrs: ndarray, costs: ndarray, budget: float, solver: Solver = Solver.
 
 # %%
 # variables = 500 * 96
-# %timeit solve(np.array([random.random() for i in range(variables)]), np.array([random.random() for i in range(variables)]), 100, solver = Solver.GLPK)
+# %timeit solve(np.array([random.random() for i in range(variables)]), np.array([random.random() for i in range(variables)]), 100, solver = Solver.CBC)
