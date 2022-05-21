@@ -64,9 +64,9 @@ def parameter_camp_test(parameter_list):
             state, reward, termination = rtb_environment.reset(budget, initial_Lambda)
             while not termination:
                 action, _, _ = rtb_agent.action(state)
-                next_state, reward, termination = rtb_environment.step(rtb_environment.actions[action])
+                next_state, reward_until_episode_end, termination = rtb_environment.step(rtb_environment.actions[action])
 
-                memory_sample = (action, state, reward, next_state, termination)
+                memory_sample = (action, state, (rtb_environment.episode_cur_reward + reward_until_episode_end) / rtb_environment.episode_optimal_reward, next_state, termination)
                 rtb_agent.replay_memory.store_sample(memory_sample)
                 rtb_agent.q_learning()
                 if global_step_counter % update_frequency == 0:

@@ -1,4 +1,5 @@
 import random
+import timeit
 
 import pyomo.environ as pyo
 from pyomo.core import maximize
@@ -17,10 +18,10 @@ def solve(ctrs: list[float], costs: list[float], budget: float):
         expr=sum([costs[i] * model.x[i] for i in range(len(ctrs))]) <= budget)
     opt = pyo.SolverFactory('glpk')
     opt.solve(model)
-    model.x.display()
-    model.y.display()
-    return model.y(), [model.x[i].value for i in model.x]
+    return model.y()
+    # return model.y(), [model.x[i].value for i in model.x]
 
 
 # %%
-solve([random.random() for i in range(500)], [random.random() for i in range(500)], 100)
+# variables = 500 * 96
+# %timeit solve([random.random() for i in range(variables)], [random.random() for i in range(variables)], 100)

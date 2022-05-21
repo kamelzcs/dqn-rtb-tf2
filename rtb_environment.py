@@ -1,9 +1,11 @@
-
 import numpy as np
 import os
 import pandas as pd
 import pickle as pickle
 import matplotlib.pyplot as plt
+from numpy.core.records import ndarray
+
+from solver.optimal_solver import solve
 
 
 class RTB_environment:
@@ -12,6 +14,7 @@ class RTB_environment:
     agent will interact with. The distinction between training and
     testing environment is primarily in the episode length.
     """
+
     def __init__(self, camp_dict, episode_length, step_length):
         """
         We need to initialize all of the data, which we fetch from the
@@ -26,13 +29,20 @@ class RTB_environment:
         """
         self.camp_dict = camp_dict
         self.data_count = camp_dict['imp']
-
-        self.result_dict = {'auctions':0, 'impressions':0, 'click':0, 'cost':0, 'win-rate':0, 'eCPC':0, 'eCPI':0}
+        self.result_dict = {'auctions': 0, 'impressions': 0, 'click': 0, 'cost': 0, 'win-rate': 0, 'eCPC': 0, 'eCPI': 0}
 
         self.actions = [-0.08, -0.03, -0.01, 0, 0.01, 0.03, 0.08]
 
         self.step_length = step_length
         self.episode_length = episode_length
+
+        # exclusive
+        self.next_episode_end_index = self.data_count
+        # includesive
+        self.next_episode_start_index = self.data_count - min(self.data_count, self.episode_length * self.step_length)
+
+        self.current_episode_start_index = 0
+        self.current_episode_end_index = 0
 
         self.Lambda = 1
         self.time_step = 0
@@ -47,17 +57,30 @@ class RTB_environment:
         self.impressions = 0
         self.termination = True
 
+        self.episode_ctr_estimations = None
+        self.episode_winning_bids = None
+        self.episode_clicks: list[float] = []
+        self.episode_budget = 0
+        self.episode_cur_reward = 0
+
+        self.episode_optimal_reward = 0
+
         self.state = [self.budget / self.init_budget, self.n_regulations,
                       self.budget_consumption_rate,
                       self.winning_rate, self.ctr_value]
 
-    def get_camp_data(self):
+    def get_camp_data(self, new_episode=False):
         """
         This function updates the data variables which are then accessible
         to the step-function. This function also deletes data that has already
         been used and, hence, tries to free up space.
         :return: updated data variables (i.e. bids, ctr estimations and clicks)
         """
+        if new_episode:
+            self.episode_ctr_estimations = np.array(self.camp_dict['data'].iloc[self.current_episode_start_index: self.current_episode_end_index, :]['pctr'])
+            self.episode_winning_bids = np.array(self.camp_dict['data'].iloc[self.current_episode_start_index: self.current_episode_end_index, :]['winprice'])
+            self.episode_clicks = list(self.camp_dict['data'].iloc[self.current_episode_start_index: self.current_episode_end_index, :]['click'])
+
         if self.data_count < self.step_length:
             ctr_estimations = np.array(self.camp_dict['data'].iloc[:self.data_count, :]['pctr'])
             winning_bids = np.array(self.camp_dict['data'].iloc[:self.data_count, :]['winprice'])
@@ -86,13 +109,20 @@ class RTB_environment:
         :param initial_Lambda: the initial scaling of ctr-estimations to form bids
         :return: initial state, zero reward and a false termination bool
         """
+        self.current_episode_end_index = self.next_episode_end_index
+        self.current_episode_start_index = self.next_episode_start_index
+
+        self.next_episode_end_index = self.current_episode_start_index
+        self.next_episode_start_index = max(0, self.next_episode_end_index - self.episode_length * self.step_length)
+
         self.n_regulations = min(self.episode_length, self.data_count / self.step_length)
         self.budget = budget
+        self.episode_budget = budget
         self.init_budget = budget * self.episode_length / self.n_regulations
         self.Lambda = initial_Lambda
         self.time_step = 0
 
-        ctr_estimations, winning_bids, clicks = self.get_camp_data()
+        ctr_estimations, winning_bids, clicks = self.get_camp_data(new_episode=True)
         bids = [int(i * (1 / self.Lambda)) for i in ctr_estimations]
         budget = self.budget
         self.budget_consumption_rate = 0
@@ -100,6 +130,7 @@ class RTB_environment:
         self.ctr_value = 0
         self.click = 0
         self.impressions = 0
+        self.episode_optimal_reward = solve(self.episode_ctr_estimations, self.episode_winning_bids, self.budget)
 
         for i in range(min(self.data_count, self.step_length)):
             if bids[i] > winning_bids[i] and budget > bids[i]:
@@ -111,6 +142,7 @@ class RTB_environment:
                 self.winning_rate += 1 / min(self.data_count, self.step_length)
             else:
                 continue
+        reward_until_episode_end = self.get_reward_until_episode_end()
 
         self.state = [self.budget / self.init_budget, self.n_regulations,
                       self.budget_consumption_rate,
@@ -120,11 +152,12 @@ class RTB_environment:
         self.budget = budget
         self.n_regulations -= 1
         self.time_step += 1
+        self.episode_cur_reward += self.ctr_value
 
         reward = self.ctr_value
         self.termination = False
 
-        return self.state, reward, self.termination
+        return self.state, reward_until_episode_end, self.termination
 
     def step(self, action):
         """
@@ -137,16 +170,17 @@ class RTB_environment:
         :param action_index: an index for the list of allowed actions
         :return: a new state, reward and termination bool (if time_step = 96)
         """
-        self.Lambda = self.Lambda*(1 + action)
+        self.Lambda = self.Lambda * (1 + action)
         ctr_estimations, winning_bids, clicks = self.get_camp_data()
 
-        bids = [int(i*(1/self.Lambda)) for i in ctr_estimations]
+        bids = [int(i * (1 / self.Lambda)) for i in ctr_estimations]
         budget = self.budget
         self.click = 0
         self.cost = 0
         self.ctr_value = 0
         self.winning_rate = 0
         self.impressions = 0
+        reward_until_episode_end = self.get_reward_until_episode_end()
 
         for i in range(min(self.data_count, self.step_length)):
             if bids[i] > winning_bids[i] and budget > bids[i]:
@@ -162,7 +196,8 @@ class RTB_environment:
         self.result_dict['impressions'] += self.impressions
         self.result_dict['click'] += self.click
         self.result_dict['cost'] += self.cost
-        self.result_dict['win-rate'] += self.winning_rate * min(self.data_count, self.step_length) / self.camp_dict['imp']
+        self.result_dict['win-rate'] += self.winning_rate * min(self.data_count, self.step_length) / self.camp_dict[
+            'imp']
 
         self.budget_consumption_rate = (self.budget - budget) / self.budget
         self.budget = budget
@@ -178,7 +213,7 @@ class RTB_environment:
 
         reward = self.ctr_value
 
-        return self.state, reward, self.termination
+        return self.state, reward_until_episode_end, self.termination
 
     def result(self):
         """
@@ -195,6 +230,19 @@ class RTB_environment:
 
         return self.result_dict['impressions'], self.result_dict['click'], self.result_dict['cost'], \
                self.result_dict['win-rate'], self.result_dict['eCPC'], self.result_dict['eCPI']
+
+    def get_reward_until_episode_end(self):
+        budget = self.budget
+        result = 0
+        for i in range(self.current_episode_start_index, self.data_count):
+            index = i - self.current_episode_start_index
+            bid = int(self.episode_ctr_estimations[index] * (1 / self.Lambda))
+            if self.episode_winning_bids[index] < bid < budget:
+                budget -= self.episode_winning_bids[index]
+                result += self.episode_ctr_estimations[index]
+            else:
+                continue
+        return result
 
 
 def get_data(camp_n):
@@ -213,7 +261,7 @@ def get_data(camp_n):
 
         for camp in camp_n:
             test_data = pd.read_csv(f"{data_path}/test.theta_{camp}.txt",
-                                     header=None, index_col=False, sep=' ',names=['click', 'winprice', 'pctr'])
+                                    header=None, index_col=False, sep=' ', names=['click', 'winprice', 'pctr'])
             train_data = pd.read_csv(f"{data_path}/train.theta_{camp}.txt",
                                      header=None, index_col=False, sep=' ', names=['click', 'winprice', 'pctr'])
             camp_info = pickle.load(open(f"{data_path}/info_{camp}.txt", 'rb'))
@@ -222,8 +270,8 @@ def get_data(camp_n):
             test_imp = camp_info['imp_test']
             train_imp = camp_info['imp_train']
 
-            train = {'imp':train_imp, 'budget':train_budget, 'data':train_data}
-            test = {'imp':test_imp, 'budget':test_budget, 'data':test_data}
+            train = {'imp': train_imp, 'budget': train_budget, 'data': train_data}
+            test = {'imp': test_imp, 'budget': test_budget, 'data': test_data}
 
             train_file_dict[camp] = train
             test_file_dict[camp] = test

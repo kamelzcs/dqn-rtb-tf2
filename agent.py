@@ -67,11 +67,12 @@ class agent:
         next_q = self.q_target.predict_batch(self.sess, next_state_matrix)
 
         for i in range(len(action_list)):
-            if termination_list[i] == True:
-                current_q[i, action_list[i]] = reward_vector[i]
-            else:
-                current_q[i, action_list[i]] = reward_vector[i] \
-                                               + self.discount_factor * np.amax(next_q[i, :])
+            current_q[i, action_list[i]] = reward_vector[i]
+            # if termination_list[i] == True:
+            #     current_q[i, action_list[i]] = reward_vector[i]
+            # else:
+            #     current_q[i, action_list[i]] = reward_vector[i] \
+            #                                    + self.discount_factor * np.amax(next_q[i, :])
 
         self.q_estimator.train_batch(self.sess, state_matrix, current_q)
 
