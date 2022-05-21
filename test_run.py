@@ -10,8 +10,8 @@ import signal
 def main():
     # faulthandler.enable()
     # faulthandler.register(signal.SIGINT.value)
-    with open('test_result/time_split_dnq_multi', 'w') as dnq_multi, \
-            open('test_result/time_split_ddpg_multi', 'w') as ddpg_multi:
+    with open('test_result/time_split_dnq_multi_optimal', 'w') as dnq_multi, \
+            open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
         json.dump(ddpg_test(), ddpg_multi)
         json.dump(dnq_test(), dnq_multi)
 
