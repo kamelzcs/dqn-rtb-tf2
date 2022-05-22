@@ -38,6 +38,6 @@ def ddpg_test(test_file_dict, budget, initial_Lambda, agent, episode_length, ste
         episode_budget = test_environment.budget
     impressions, click, cost, win_rate, ecpc, ecpi = test_environment.result()
 
-    return impressions, click, cost, win_rate, ecpc, ecpi, optimal_reward\
+    return impressions, click, cost, win_rate, ecpc, ecpi, optimal_reward, \
            [np.array(budget_list).tolist(), np.array(Lambda_list).tolist(),
             np.array(action_value_list).tolist()]

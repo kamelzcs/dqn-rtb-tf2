@@ -66,7 +66,9 @@ def parameter_camp_test(parameter_list):
                 action, _, _ = rtb_agent.action(state)
                 next_state, reward_until_episode_end, termination = rtb_environment.step(rtb_environment.actions[action])
 
-                memory_sample = (action, state, (rtb_environment.episode_cur_reward + reward_until_episode_end) / rtb_environment.episode_optimal_reward, next_state, termination)
+                reward_ratio = (rtb_environment.episode_cur_reward + reward_until_episode_end) / rtb_environment.episode_optimal_reward
+                # print(f'episode_cur_reward:{rtb_environment.episode_cur_reward}, reward_until_episode_end:{reward_until_episode_end}, reward_ratio:{reward_ratio}')
+                memory_sample = (action, state, reward_ratio, next_state, termination)
                 rtb_agent.replay_memory.store_sample(memory_sample)
                 rtb_agent.q_learning()
                 if global_step_counter % update_frequency == 0:
@@ -78,7 +80,7 @@ def parameter_camp_test(parameter_list):
 
     epsilon = rtb_agent.e_greedy_policy.epsilon
     budget = total_budget / total_impressions * test_file_dict['imp'] * budget_scaling
-    imp, click, cost, wr, ecpc, ecpi, camp_info, optimal_reward = drlb_test(test_file_dict, budget, initial_Lambda, rtb_agent,
+    imp, click, cost, wr, ecpc, ecpi, optimal_reward, camp_info = drlb_test(test_file_dict, budget, initial_Lambda, rtb_agent,
                                                             episode_length, step_length)
     sess.close()
     lin_bid_result = list(lin_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'historical'))
