@@ -162,10 +162,10 @@ class agent:
         self.q_estimator.train_batch(self.sess, state_matrix, current_q)
         
     def target_network_update(self, polyak_tau=0.95):
-        estimator_params = [t for t in tf.trainable_variables() if\
+        estimator_params = [t for t in tf.compat.v1.trainable_variables() if\
                             t.name.startswith(self.q_estimator.scope)]
         estimator_params = sorted(estimator_params, key=lambda v:v.name)
-        target_params = [t for t in tf.trainable_variables() if\
+        target_params = [t for t in tf.compat.v1.trainable_variables() if\
                          t.name.startswith(self.q_target.scope)]
         target_params = sorted(target_params, key=lambda v:v.name)
         update_ops = []
@@ -187,12 +187,12 @@ update_frequency = 200
 random_n = 25000
 episodes_n = 1000
 
-tf.reset_default_graph()
+tf.compat.v1.reset_default_graph()
 
 env = gym.make('MountainCar-v0')
 env.seed(0)
 
-with tf.Session() as sess:
+with tf.compat.v1.Session() as sess:
     agent = agent(epsilon_max, epsilon_min, epsilon_decay_rate, 
                  discount_factor, batch_size, memory_cap,
                  env.observation_space.shape[0], env.action_space.n, sess)
