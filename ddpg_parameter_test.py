@@ -37,31 +37,35 @@ def parameter_camp_test(parameter_list):
     total_impressions = 0
     global_step_counter = 0
 
-    for i in camp_n:
-        rtb_environment = RTB_environment(train_file_dict[i], episode_length, step_length)
-        total_budget += train_file_dict[i]['budget']
-        total_impressions += train_file_dict[i]['imp']
-        while rtb_environment.data_count > 0:
-            episode_size = min(episode_length * step_length, rtb_environment.data_count)
-            budget = train_file_dict[i]['budget'] * min(rtb_environment.data_count, episode_size) \
-                     / train_file_dict[i]['imp'] * budget_scaling
-            budget = np.random.normal(budget, budget_init_var)
+    # for i in camp_n:
+    test_camp_n = ['2997']
+    for j in range(1):
+        for i in camp_n:
+            rtb_environment = RTB_environment(train_file_dict[i], episode_length, step_length)
+            total_budget += train_file_dict[i]['budget']
+            total_impressions += train_file_dict[i]['imp']
+            while rtb_environment.data_count > 0:
+                episode_size = min(episode_length * step_length, rtb_environment.data_count)
+                budget = train_file_dict[i]['budget'] * min(rtb_environment.data_count, episode_size) \
+                         / train_file_dict[i]['imp'] * budget_scaling
+                budget = np.random.normal(budget, budget_init_var)
 
-            state, reward, termination = rtb_environment.reset(budget, initial_Lambda)
-            while not termination:
-                action, _ = rtb_agent.policy(state)
-                next_state, reward_until_episode_end, termination = rtb_environment.step(action[0])
+                cur_lambda = rtb_environment.Lambda if rtb_environment.Lambda != 1 else initial_Lambda
+                state, reward, termination = rtb_environment.reset(budget, cur_lambda)
+                while not termination:
+                    action, _ = rtb_agent.policy(state)
+                    next_state, reward_until_episode_end, termination = rtb_environment.step(action[0])
 
-                memory_sample = (action, state, (rtb_environment.episode_cur_reward + reward_until_episode_end) / rtb_environment.episode_optimal_reward, next_state, termination)
-                rtb_agent.buffer.record(memory_sample)
-                rtb_agent.buffer.learn()
-                if global_step_counter % update_frequency == 0:
-                    rtb_agent.update_target(rtb_agent.target_actor.variables, rtb_agent.actor_model.variables)
-                    rtb_agent.update_target(rtb_agent.target_critic.variables, rtb_agent.critic_model.variables)
-                #
-                # rtb_agent.e_greedy_policy.epsilon_update(global_step_counter)
-                state = next_state
-                global_step_counter += 1
+                    memory_sample = (action, state, (rtb_environment.episode_cur_reward + reward_until_episode_end) / rtb_environment.episode_optimal_reward, next_state, termination)
+                    rtb_agent.buffer.record(memory_sample)
+                    rtb_agent.buffer.learn()
+                    if global_step_counter % update_frequency == 0:
+                        rtb_agent.update_target(rtb_agent.target_actor.variables, rtb_agent.actor_model.variables)
+                        rtb_agent.update_target(rtb_agent.target_critic.variables, rtb_agent.critic_model.variables)
+                    #
+                    # rtb_agent.e_greedy_policy.epsilon_update(global_step_counter)
+                    state = next_state
+                    global_step_counter += 1
 
     # epsilon = rtb_agent.e_greedy_policy.epsilon
     budget = total_budget / total_impressions * test_file_dict['imp'] * budget_scaling
@@ -74,6 +78,6 @@ def parameter_camp_test(parameter_list):
     result_dict = {'camp_id': camp_id, 'parameters': parameter_list[1:], 'total budget': budget,
                    'auctions': test_file_dict['imp'], 'optimal_reward': optimal_reward,
                    'camp_result': np.array([imp, click, cost, wr, ecpc, ecpi]).tolist(), 'budget': camp_info[0],
-                   'lambda': camp_info[1], 'action values': camp_info[2],
+                   'lambda': camp_info[1], 'action values': camp_info[2], 'actions': camp_info[3],
                    'lin_bid_result': lin_bid_result, 'rand_bid_result': rand_bid_result}
     return result_dict

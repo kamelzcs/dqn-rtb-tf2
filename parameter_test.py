@@ -51,6 +51,8 @@ def parameter_camp_test(parameter_list):
     total_impressions = 0
     global_step_counter = 0
 
+    # for i in camp_n:
+    test_camp_n = ['2997']
     for i in camp_n:
         rtb_environment = RTB_environment(train_file_dict[i], episode_length, step_length)
         total_budget += train_file_dict[i]['budget']
@@ -61,7 +63,8 @@ def parameter_camp_test(parameter_list):
                      / train_file_dict[i]['imp'] * budget_scaling
             budget = np.random.normal(budget, budget_init_var)
 
-            state, reward, termination = rtb_environment.reset(budget, initial_Lambda)
+            cur_lambda = rtb_environment.Lambda if rtb_environment.Lambda != 1 else initial_Lambda
+            state, reward, termination = rtb_environment.reset(budget, cur_lambda)
             while not termination:
                 action, _, _ = rtb_agent.action(state)
                 next_state, reward_until_episode_end, termination = rtb_environment.step(rtb_environment.actions[action])

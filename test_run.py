@@ -12,10 +12,12 @@ from multiprocessing import Pool
 def main():
     # faulthandler.enable()
     # faulthandler.register(signal.SIGINT.value)
-    with open('test_result/time_split_dnq_multi_optimal', 'w') as dnq_multi, \
-            open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
-        json.dump(ddpg_test_multi(), ddpg_multi)
-        json.dump(dnq_test_multi(), dnq_multi)
+    # with open('test_result/time_split_dnq_multi_optimal', 'w') as dnq_multi, \
+    #         open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
+    #     json.dump(ddpg_test_multi(), ddpg_multi, indent=2)
+    #     json.dump(dnq_test_multi(), dnq_multi, indent=2)
+    with open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
+        json.dump(ddpg_test_multi(), ddpg_multi, indent=2)
 
 def dnq_test_multi():
     concurrency = 20
