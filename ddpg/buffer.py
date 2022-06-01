@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import tensorflow as tf
 
@@ -12,6 +14,7 @@ class Buffer:
         self.target_critic = target_critic
         self.target_actor = target_actor
         self.gamma = gamma
+        self.num_actions = num_actions
 
         # Number of "experiences" to store at max
         self.buffer_capacity = buffer_capacity
@@ -24,7 +27,7 @@ class Buffer:
         # Instead of list of tuples as the exp.replay concept go
         # We use different np.arrays for each tuple element
         self.state_buffer = np.zeros((self.buffer_capacity, num_states))
-        self.action_buffer = np.zeros((self.buffer_capacity, num_actions))
+        self.action_buffer = np.zeros((self.buffer_capacity, 1))
         self.reward_buffer = np.zeros((self.buffer_capacity, 1))
         self.next_state_buffer = np.zeros((self.buffer_capacity, num_states))
 
@@ -53,10 +56,9 @@ class Buffer:
         # See Pseudo Code.
         with tf.GradientTape() as tape:
             target_actions = self.target_actor(next_state_batch, training=True)
-            # y = reward_batch + self.gamma * self.target_critic(
-            #     [next_state_batch, target_actions], training=True
-            # )
-            y = reward_batch
+            y = reward_batch + self.gamma * self.target_critic(
+                [next_state_batch, target_actions], training=True
+            )
             critic_value = self.critic_model([state_batch, action_batch], training=True)
             critic_loss = tf.math.reduce_mean(tf.math.square(y - critic_value))
 
@@ -91,5 +93,6 @@ class Buffer:
         reward_batch = tf.cast(reward_batch, dtype=tf.float32)
         next_state_batch = tf.convert_to_tensor(self.next_state_buffer[batch_indices])
 
-        self.update(state_batch, action_batch, reward_batch, next_state_batch)
+        tf_one_hot_batch_actions = tf.one_hot(tf.cast(action_batch, dtype=tf.int32), self.num_actions)
+        self.update(state_batch, tf.squeeze(tf_one_hot_batch_actions), reward_batch, next_state_batch)
 
