@@ -6,6 +6,8 @@ from rtb_environment import RTB_environment, get_data
 from drlb_test import drlb_test
 from lin_bid_test import lin_bidding_test
 from rand_bid_test import rand_bidding_test
+from test_result.model.CampResult import CampResult
+from test_result.model.Result import Result
 
 
 # parameter_list = [camp_id, epsilon_decay_rate, budget_scaling, budget_init_variance, initial_Lambda]
@@ -86,12 +88,21 @@ def parameter_camp_test(parameter_list):
     imp, click, cost, wr, ecpc, ecpi, optimal_reward, camp_info = drlb_test(test_file_dict, budget, initial_Lambda, rtb_agent,
                                                             episode_length, step_length)
     sess.close()
-    lin_bid_result = list(lin_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'historical'))
-    rand_bid_result = list(rand_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'uniform'))
+    lin_bid_result = lin_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'historical')
+    rand_bid_result = rand_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'uniform')
+    result: Result = Result(camp_id=camp_id, parameters=parameter_list, epsilon=epsilon, total_budget=total_budget,
+                            auctions=test_file_dict['imp'], optimal_reward=optimal_reward,
+                            camp_result=CampResult(imp=imp, click=click, cost=cost, wr=wr, ecpc=ecpc, ecpi=ecpi),
+                            budget=camp_info[0], lambda_value=camp_info[1], unimod=camp_info[2],
+                            action_nested_values=camp_info[3], lin_bid_test=lin_bid_result,
+                            rand_bid_test=rand_bid_result
+                            )
 
-    result_dict = {'camp_id': camp_id, 'parameters': parameter_list[1:], 'epsilon': epsilon, 'total budget': budget,
-                   'auctions': test_file_dict['imp'], 'optimal_reward': optimal_reward,
-                   'camp_result': np.array([imp, click, cost, wr, ecpc, ecpi]).tolist(), 'budget': camp_info[0],
-                   'lambda': camp_info[1], 'unimod': camp_info[2], 'action values': camp_info[3],
-                   'lin_bid_result': lin_bid_result, 'rand_bid_result': rand_bid_result}
-    return result_dict
+
+    # result_dict = {'camp_id': camp_id, 'parameters': parameter_list[1:], 'epsilon': epsilon, 'total_budget': budget,
+    #                'auctions': test_file_dict['imp'], 'optimal_reward': optimal_reward,
+    #                'camp_result': {'imp': imp, 'click': click, 'cost': cost, 'wr': wr, 'ecpc': ecpc, 'ecpi': ecpi},
+    #                'budget': camp_info[0],
+    #                'lambda_value': camp_info[1], 'unimod': camp_info[2], 'action_values': camp_info[3],
+    #                'lin_bid_result': lin_bid_result, 'rand_bid_result': rand_bid_result}
+    return result

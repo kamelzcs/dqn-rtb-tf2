@@ -1,6 +1,9 @@
 
 import numpy as np
 
+from test_result.model.CampResult import CampResult
+
+
 def rand_bidding_test(train_file_dict, test_file_dict, budget, distribution):
     """
     This function takes a specific iPinYou-campaign and evaluates the
@@ -50,4 +53,6 @@ def rand_bidding_test(train_file_dict, test_file_dict, budget, distribution):
     if impressions > 0:
         ecpi = cost / impressions
 
-    return impressions, clicks, cost, win_rate, ecpc, ecpi
+    # return impressions, clicks, cost, win_rate, ecpc, ecpi
+    return CampResult(imp=impressions, click=clicks, cost=cost, wr=win_rate, ecpc=ecpc, ecpi=ecpi)
+

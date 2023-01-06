@@ -1,6 +1,9 @@
 
 import numpy as np
 
+from test_result.model.CampResult import CampResult
+
+
 def lin_bidding_test(train_file_dict, test_file_dict, budget, type_of_average):
     """
     This function takes a specific iPinYou-campaign and evaluates the
@@ -51,4 +54,5 @@ def lin_bidding_test(train_file_dict, test_file_dict, budget, type_of_average):
     if impressions > 0:
         ecpi = cost / impressions
 
-    return impressions, clicks, cost, win_rate, ecpc, ecpi
+    # return impressions, clicks, cost, win_rate, ecpc, ecpi
+    return CampResult(imp=impressions, click=clicks, cost=cost, wr=win_rate, ecpc=ecpc, ecpi=ecpi)
