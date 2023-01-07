@@ -9,24 +9,25 @@ from test_result.model.Result import Results
 from test_result.model.hyper_parameters import Parameters
 
 
+standard_camp_id = '1458'
+test_camp_id = '2997'
+camp_id = standard_camp_id
 def main():
     # faulthandler.enable()
     # faulthandler.register(signal.SIGINT.value)
-    # with open('test_result/time_split_dnq_multi_optimal', 'w') as dnq_multi, \
-    #         open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
-    #     json.dump(json.loads(ddpg_test_multi().json()), ddpg_multi, indent=2)
-    #     json.dump(json.loads(dnq_test_multi().json()), dnq_multi, indent=2)
-
-    with open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
+    with open('test_result/time_split_dqn_multi_optimal', 'w') as dnq_multi, \
+            open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
         json.dump(json.loads(ddpg_test_multi().json()), ddpg_multi, indent=2)
+        json.dump(json.loads(dqn_test_multi().json()), dnq_multi, indent=2)
+
+    # with open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
+    #     json.dump(json.loads(ddpg_test_multi().json()), ddpg_multi, indent=2)
 
 
-def dnq_test_multi():
+def dqn_test_multi():
     concurrency = 20
-    standard_camp_id = '1458'
-    test_camp_id = '2997'
     # parameter_test = ['1458', 1.0 / 32] + [1e-4] + [0.0001, 2500, 500, 1e-4, random.randint(0, 100), 96]
-    parameter_test = Parameters(camp_id=test_camp_id, budget_scaling=1.0 / 32, initial_Lambda=1e-4,
+    parameter_test = Parameters(camp_id=camp_id, budget_scaling=1.0 / 32, initial_Lambda=1e-4,
                                 epsilon_decay_rate=0.0001, budget_init=2500,
                                 step_length=500,
                                 learning_rate=1e-4, seed=random.randint(0, 100),
@@ -74,9 +75,7 @@ def ddpg_test():
 
 def ddpg_test_multi():
     concurrency = 20
-    standard_camp_id = '1458'
-    test_camp_id = '2997'
-    parameter_test = Parameters(camp_id=test_camp_id, budget_scaling=1.0 / 32, initial_Lambda=1e-4,
+    parameter_test = Parameters(camp_id=camp_id, budget_scaling=1.0 / 32, initial_Lambda=1e-4,
                                 budget_init=2500, step_length=500, episode_length=96)
     # parameter_test = [test_camp_id, 1.0 / 32] + [1e-4] + [0.0001, 2500, 500, 96]
     with Pool(processes=concurrency) as pool:
