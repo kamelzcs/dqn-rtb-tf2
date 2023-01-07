@@ -3,11 +3,12 @@ from typing import Optional
 from pydantic import BaseModel
 
 from test_result.model.CampResult import CampResult
+from test_result.model.hyper_parameters import Parameters
 
 
 class Result(BaseModel):
     camp_id: str
-    parameters: list[str]
+    parameters: Parameters
     epsilon: Optional[float]
     total_budget: float
     auctions: float

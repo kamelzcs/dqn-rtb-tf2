@@ -10,11 +10,12 @@ from lin_bid_test import lin_bidding_test
 from rand_bid_test import rand_bidding_test
 from test_result.model.CampResult import CampResult
 from test_result.model.Result import Result
+from test_result.model.hyper_parameters import Parameters
 
 
 # parameter_list = [camp_id, epsilon_decay_rate, budget_scaling, budget_init_variance, initial_Lambda]
 
-def parameter_camp_test(parameter_list):
+def parameter_camp_test(parameters: Parameters):
     """
     This function should take a camp ID, train an agent for that specific campaign
     and then test the agent for that campaign. We start by defining the hyper-parameters.
@@ -23,12 +24,12 @@ def parameter_camp_test(parameter_list):
 
     update_frequency = 100
 
-    camp_id = parameter_list[0]
-    budget_scaling = parameter_list[1]
-    initial_Lambda = parameter_list[2]
-    budget_init_var = parameter_list[4] * budget_scaling
-    step_length = parameter_list[5]
-    episode_length = parameter_list[6]
+    camp_id = parameters.camp_id
+    budget_scaling = parameters.budget_scaling
+    initial_lambda = parameters.initial_Lambda
+    budget_init_var = parameters.budget_init * budget_scaling
+    step_length = parameters.step_length
+    episode_length = parameters.episode_length
 
     rtb_agent = DDPG_Agent(episode_length)
 
@@ -52,7 +53,7 @@ def parameter_camp_test(parameter_list):
                          / train_file_dict[i]['imp'] * budget_scaling
                 budget = np.random.normal(budget, budget_init_var)
 
-                cur_lambda = rtb_environment.Lambda if rtb_environment.Lambda != 1 else initial_Lambda
+                cur_lambda = rtb_environment.Lambda if rtb_environment.Lambda != 1 else initial_lambda
                 state, reward, termination = rtb_environment.reset(budget, cur_lambda)
                 while not termination:
                     action, _ = rtb_agent.policy(state)
@@ -71,7 +72,7 @@ def parameter_camp_test(parameter_list):
 
     # epsilon = rtb_agent.e_greedy_policy.epsilon
     budget = total_budget / total_impressions * test_file_dict['imp'] * budget_scaling
-    imp, click, cost, wr, ecpc, ecpi, optimal_reward, camp_info = ddpg_test(test_file_dict, budget, initial_Lambda, rtb_agent,
+    imp, click, cost, wr, ecpc, ecpi, optimal_reward, camp_info = ddpg_test(test_file_dict, budget, initial_lambda, rtb_agent,
                                                             episode_length, step_length)
     # sess.close()
     lin_bid_result = lin_bidding_test(train_file_dict[camp_id], test_file_dict, budget, 'historical')
@@ -83,7 +84,7 @@ def parameter_camp_test(parameter_list):
     #                'lambda': camp_info[1], 'action values': camp_info[2], 'actions': camp_info[3],
     #                'lin_bid_result': lin_bid_result, 'rand_bid_result': rand_bid_result}
 
-    result: Result = Result(camp_id=camp_id, parameters=parameter_list, total_budget=total_budget,
+    result: Result = Result(camp_id=camp_id, parameters=parameters, total_budget=total_budget,
                             auctions=test_file_dict['imp'], optimal_reward=optimal_reward,
                             camp_result=CampResult(imp=imp, click=click, cost=cost, wr=wr, ecpc=ecpc, ecpi=ecpi),
                             budget=camp_info[0], lambda_value=camp_info[1], action_values=camp_info[2],
