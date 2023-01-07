@@ -12,17 +12,13 @@ from test_result.model.hyper_parameters import Parameters
 def main():
     # faulthandler.enable()
     # faulthandler.register(signal.SIGINT.value)
-    with open('test_result/time_split_dnq_multi_optimal', 'w') as dnq_multi, \
-            open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
-        ddpg = Process(target=json.dump(json.loads(ddpg_test_multi().json()), ddpg_multi, indent=2))
-        dqn = Process(target=json.dump(json.loads(dnq_test_multi().json()), dnq_multi, indent=2))
-        ddpg.start()
-        dqn.start()
-        ddpg.join()
-        dqn.join()
-
-    # with open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
+    # with open('test_result/time_split_dnq_multi_optimal', 'w') as dnq_multi, \
+    #         open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
     #     json.dump(json.loads(ddpg_test_multi().json()), ddpg_multi, indent=2)
+    #     json.dump(json.loads(dnq_test_multi().json()), dnq_multi, indent=2)
+
+    with open('test_result/time_split_ddpg_multi_optimal', 'w') as ddpg_multi:
+        json.dump(json.loads(ddpg_test_multi().json()), ddpg_multi, indent=2)
 
 
 def dnq_test_multi():
